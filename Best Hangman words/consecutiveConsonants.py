@@ -12,10 +12,12 @@ class wordSpecies:
         self.wordlist = [x for x in file.read().splitlines() if len(x) == wordlength]
         file.close()
 
-    def get_consecutive(self, wordnum):
+    def get_consecutive(self, wordnum = 10, trimDoubleLetter = False):
         maxCon = 0
         maxConList = []
         for x in self.wordlist:
+            if trimDoubleLetter:
+                x = re.sub(f'([^{self.vowelType}])(?=(?:\\1))', '', x, flags=re.DOTALL)
             splitWord = re.split(f'[{self.vowelType}]+', x, flags=re.IGNORECASE)
             maxWordCon = max([len(y) for y in splitWord])
             if maxWordCon > maxCon:
@@ -33,4 +35,4 @@ class wordSpecies:
 if __name__ == '__main__': # test example
     q = input("word length:\n>>> ")
     w = wordSpecies(int(q), SOFT_VOWELS_S)
-    print(w.get_consecutive(10))
+    print(w.get_consecutive(10, True))
