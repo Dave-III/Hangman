@@ -14,7 +14,12 @@ class wordSpecies:
         with open(FILE_PATH, 'r') as file:
             self.wordlist = [x.strip() for x in file.read().splitlines() if len(x.strip()) == wordlength]
 
-    def get_consecutive(self, wordnum = None, trimDoubleLetter = False):
+    def set_wordlength(self, length: int):
+        # grab all words of defined length, after trimming whitespace
+        with open(FILE_PATH, 'r') as file:
+            self.wordlist = [x.strip() for x in file.read().splitlines() if len(x.strip()) == length]
+
+    def get_longest_consecutive(self, wordnum = None, trimDoubleLetter = False):
         maxCon = 0
         maxConList = []
         for x in self.wordlist:
@@ -36,6 +41,15 @@ class wordSpecies:
                 maxConList.append(x)
 
         return (maxCon, maxConList[:wordnum]) # return wordnum number of words
+    
+    def get_most_consonants(self, wordnum = None):
+        consonant_ratios = []
+        for word in self.wordlist:
+            original_length = len(word)
+            consonant_count = len(re.sub(f'[{self.vowelType}]+', '', word, flags=re.DOTALL))
+            consonant_ratios.append((word, round(consonant_count / original_length, 3)))
+        consonant_ratios.sort(key=lambda x: x[1], reverse=True)
+        return consonant_ratios[:wordnum]
 
 
     def __str__(self):
@@ -45,5 +59,6 @@ class wordSpecies:
 
 if __name__ == '__main__': # test example
     q = input("word length:\n>>> ")
-    w = wordSpecies(int(q), HARD_VOWELS_S)
-    print(w.get_consecutive(trimDoubleLetter=True))
+    w = wordSpecies(int(q), SOFT_VOWELS_S)
+    print(w.get_longest_consecutive(trimDoubleLetter=True))
+    print(w.get_most_consonants(40))
