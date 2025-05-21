@@ -1,4 +1,4 @@
-from collections import Counter
+from consecutiveConsonants import wordSpecies
 
 class LetterValue:
 
@@ -60,12 +60,9 @@ class WordScore:
         
     # function returns hardest word according to calculator for hangman
     def get_rarest(self, length=1):
-        correct_len_list = []
 
-        # makes sure length of word is the same as what user wants
-        for word, score in self.score:
-            if len(word) == length:
-                correct_len_list.append((word, score))
+        # collects edited score form Calvins consecutiveConsonants.py code
+        correct_len_list = wordSpecies2(length, "aeiouy")
 
         #returns second item from score tuple
         def get_score(item):
