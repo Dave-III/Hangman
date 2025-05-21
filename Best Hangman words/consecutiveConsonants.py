@@ -63,7 +63,7 @@ class WordSpecies:
         self.wordList = [word[0] for word in wordData]
         self.adjustedWordScore = []
         self.vowelType = vowelType  
-        
+         
     def applyConsonantRatio(self):
         self.adjustedWordScore = []
         for index, word in enumerate(self.wordList):

@@ -49,7 +49,7 @@ class WordScore:
                 score = base_score * (1 - penalty_factor)
             else:
                 score = base_score
-
+ 
             # multiplies score by 100000 to ensure human readability
             score = round(score * 100000, 3)
             if len(word) != word_length:
