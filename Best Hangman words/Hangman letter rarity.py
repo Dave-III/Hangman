@@ -3,6 +3,7 @@ from collections import Counter
 class LetterValue:
 
     def __init__(self, filename):
+        #Alphabet dictionary used for collecting total count of each letter.
         self.alp_list = {
             "a": 0, "b": 0, "c": 0, "d": 0, "e": 0, "f": 0, "g": 0, "h": 0, "i": 0, "j": 0,
             "k": 0, "l": 0, "m": 0, "n": 0, "o": 0, "p": 0, "q": 0, "r": 0, "s": 0, "t": 0,
@@ -11,6 +12,7 @@ class LetterValue:
         with open(filename, "r") as file:
             self.file_data = file.read().splitlines()
 
+    #Function used to claculate amount of each letter.
     def alp_list_calculator(self):
         for word in self.file_data:
             for letter in word.lower():
@@ -19,92 +21,101 @@ class LetterValue:
 
 class WordScore:
 
+    #Initializes All items used for calculating each words score.
     def __init__(self):
-        # initialise letter counter
-        self.data = LetterValue("words_alpha.txt")
-        self.data.alp_list_calculator()
+        self.data = LetterValue("words_alpha.txt") #File that contains all the words
+        self.data.alp_list_calculator() #num of letter data
+        self.letter_scores = {ch: 1 / freq for ch, freq in self.data.alp_list.items() if freq > 0} # inverse of letter amount, helps with score
+        self.score =[] #score of each letter, stored in this list
+        self.top_scorers = [] # list of top scorers, depends on what the value of top scorers is set to
+        self.penalty_letters = set('tnshrdlaeiou') #list that penalizes total score if these letters are in it W.I.P
+        self.blacklist = "" #temp str, used for blacklisted letters requested from user.
 
-        # copy over all letters from letter counter, except unused chars, with inverted weight
-        self.letter_scores = {ch: 1 / freq for ch, freq in self.data.alp_list.items() if freq > 0}
 
-        # other initialisers
-        self.score =[]
-        self.top_scorers = []
-        self.penalty_letters = set('tnshrdlaeiou')
-        self.blacklist = ""
-
-    def score_word(self, repetition_factor=0.1, penalty_factor = 0.5):
+    def score_word(self, penalty_factor=0.5): #penalty factor is penalty due to using penalty letter W.I.P
+        
         for word in self.data.file_data:
-            
-            # skip words with blacklisted letter (set via __str__())
+
+            # If any letter from blacklist in word then the word is skipped
             if any(letter in self.blacklist for letter in word):
-                    continue
+                continue
+
+            # base score calculated from sum of letter score
             base_score = sum(self.letter_scores.get(ch, 0) for ch in word)
 
-            # gets count of each letter in word, and number of non-repeated chars (!=?)
-            counts = Counter(word)
-            repeats = sum(count for count in counts.values() if count == 1)
+            # If any letter from word is in penalty letters, word is timesed by penalty factor W.I.P
+            if any(letter in self.penalty_letters for letter in word):
+                score = base_score * (1 - penalty_factor)
+            
+            # used to make the value easier to read, values below 100
+            score = round(score * 100000, 3)
 
-            # add 10% for every non-repeating letter
-            repetition_multiplier = 1 + (repeats * repetition_factor)
-            score = base_score * repetition_multiplier
-
-            # account for penalty score (half score?)
-            score -= score * penalty_factor
-
-            score = round(score * 100000, 3) # 100 000 trivially to approx to scores below 100
+            # score of the word is added to score list as tuple.
             self.score.append((word, score))
 
+
+    # setup for blacklist, turns letters given by user into traversable list
     def blacklist_sort(self):
         self.blacklist = list(self.blacklist)
         
+    # function returns hardest word according to calculator for hangman
     def get_rarest(self, length=1):
         correct_len_list = []
+
+        # makes sure length of word is the same as what user wants
         for word, score in self.score:
             if len(word) == length:
                 correct_len_list.append((word, score))
-        # correct_len_list = [wordscore[0] for wordscore in self.score if len(wordscore[0]) == length]
 
+        #returns second item from score tuple
         def get_score(item):
             return item[1]
         
-        # sort via highest-to-lowest score
+        #sorts the words of correct length in terms of the score in reverse so max score is first
         correct_len_list.sort(key=get_score, reverse=True)
 
+        #returns all words with correct length in sorted order from highest score to lowest
         self.top_scorers = correct_len_list
 
+    #adds UI for the code, allows user to see result
     def __str__(self):
         print('\n')
 
+        
         user_input = int(input("What length of word do you want: "))
-        self.blacklist = input("Are there any letters you do want in there (if multiple letters, type them with no spacing): ")
+
+        self.blacklist = input("Are there any letters you do want to remove (if multiple letters, type them with no spacing): ")
+
         print("\n")
-        self.score_word()
-        self.get_rarest(user_input)
-        if self.top_scorers == []:
+        
+        self.score_word() #collects all word scores
+        self.get_rarest(user_input) #collects highest scoring words based off user input.
+
+        
+        if self.top_scorers == []: #if the list is empty prompts user with error (fail-safe)
             return f"There are no words in the English dictionary with a length of {user_input} letters."
         
-        # get rounded average of all scores
+        #calculates average score of all words under user restriction
         total = 0
         for i in self.top_scorers:
             total += i[1]
         average = round(total / len(self.top_scorers), 3)
 
-        # word with closest score to average
-        closest_word = min(
-        self.top_scorers,
-        key=lambda x: abs(x[1] - average)
-        )
+        #finds closest word to average calculated above
+        closest_word = min(self.top_scorers,key=lambda x: abs(x[1] - average))
 
-        # print top ten, followed by summary stats
+
+        count = 1 #count used for nice formatting
         top_ten = self.top_scorers[:10]
-        for count, i in enumerate(top_ten, start=1):
+        for i in top_ten: #prints top ten, interchangeable by coder
             print(f"No. {count} = {i[0]} with a score of {i[1]}")
+            count += 1
+
         print("\n")
         print(f"Total number of words with a size of {user_input} is {len(self.top_scorers)}, and the average score was {average}")
 
         return f"The closest word to the average is '{closest_word[0]}' with a score of {closest_word[1]}"
 
-if __name__ == '__main__':
-    ws = WordScore()
-    print(ws)
+#calls the function
+ws = WordScore()
+print(ws)
