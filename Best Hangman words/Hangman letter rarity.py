@@ -1,4 +1,4 @@
-from consecutiveConsonants import wordSpecies
+from consecutiveConsonants import WordSpecies
 
 class LetterValue:
 
@@ -32,8 +32,9 @@ class WordScore:
         self.blacklist = "" #temp str, used for blacklisted letters requested from user.
 
 
-    def score_word(self, penalty_factor=0.5): #penalty factor is penalty due to using penalty letter W.I.P
+    def score_word(self, word_length=1): #penalty factor is penalty due to using penalty letter W.I.P
         
+        penalty_factor = 0.5
         for word in self.data.file_data:
 
             # If any letter from blacklist in word then the word is skipped
@@ -46,12 +47,16 @@ class WordScore:
             # If any letter from word is in penalty letters, word is timesed by penalty factor W.I.P
             if any(letter in self.penalty_letters for letter in word):
                 score = base_score * (1 - penalty_factor)
-            
-            # used to make the value easier to read, values below 100
-            score = round(score * 100000, 3)
+            else:
+                score = base_score
 
-            # score of the word is added to score list as tuple.
-            self.score.append((word, score))
+            # multiplies score by 100000 to ensure human readability
+            score = round(score * 100000, 3)
+            if len(word) != word_length:
+                continue
+            else:
+                # score of the word is added to score list as tuple.
+                self.score.append((word, score))
 
 
     # setup for blacklist, turns letters given by user into traversable list
@@ -59,10 +64,11 @@ class WordScore:
         self.blacklist = list(self.blacklist)
         
     # function returns hardest word according to calculator for hangman
-    def get_rarest(self, length=1):
+    def get_rarest(self):
 
         # collects edited score form Calvins consecutiveConsonants.py code
-        correct_len_list = wordSpecies2(length, "aeiouy")
+        correct_len_list = WordSpecies(self.score, "aeiouy")
+        correct_len_list = correct_len_list.applyConsonantRatio()
 
         #returns second item from score tuple
         def get_score(item):
@@ -85,8 +91,8 @@ class WordScore:
 
         print("\n")
         
-        self.score_word() #collects all word scores
-        self.get_rarest(user_input) #collects highest scoring words based off user input.
+        self.score_word(user_input) #collects all word scores
+        self.get_rarest() #collects highest scoring words based off user input.
 
         
         if self.top_scorers == []: #if the list is empty prompts user with error (fail-safe)
