@@ -8,4 +8,6 @@ A hangman project, using [this word list](https://github.com/dwyl/english-words)
  - [ ] Filter out words not following common conventions (e.g. vowels, `u` after `q`, etc.)
  - [ ] Migrate old hangman project
  - [ ] Add coloured terminal text via ANSI colour codes
- - [ ] add terminal for user input
+ - [ ] Proper word sorting, removes abbreviated words
+ - [ ] combine both scoring systems
+ - [ ] ascii hangman for later on when you can actually play the game (Future)
