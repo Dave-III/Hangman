@@ -1,4 +1,4 @@
-from constants import WORDLIST_PATH
+from utils import WORDLIST_PATH
 from collections import defaultdict
 
 NULL_CHARS = ['-', '_', '*', '/']
