@@ -1,21 +1,36 @@
 import requests
 from bs4 import BeautifulSoup as bs
-r = requests.get("https://www.dictionary.com/browse/thru")
-print(r)
- 
-if r.status_code == 404:
-    print("invalid word")
-else:
-    soup = bs(r.content, 'html.parser')
+import time, random
 
-    # Get all h2 tags and their text
-    content = soup.find_all('h2')
-    texts = [tag.get_text(strip=True).lower() for tag in content]
 
-    # Count how many h2 tags contain "abbreviation for"
-    count = sum(1 for text in texts if "abbreviation for" in text)
+def isvalid(word):
+    #added sleep interval to prevent spam pinging the server
+    time.sleep(random.randint(100, 1000)/1000)
+    r = requests.get(f"https://www.dictionary.com/browse/{word}")
+    print(r)
 
-    if count > 0:
-        print("invalid word")
+    # if page does not exist, return invalid word
+    if r.status_code != 200:
+        return 1
     else:
-        print("valid word")
+        soup = bs(r.content, 'html.parser')
+
+        # Get all h2 tags and their text on webpage
+        h2_tags = soup.find_all('h2')
+        h2_texts = [tag.get_text(strip=True).lower() for tag in h2_tags]
+
+        #phrases that will return an "invalid word"
+        invalid_cues = [
+            "abbreviation for",
+            "symbol for",
+            "initialism for",
+            "acronym for",
+            "short for",
+            "trademark"
+        ]
+
+        # Check if any h2 contains any of those phrases
+        if any(any(cue in text for cue in invalid_cues) for text in h2_texts):
+            return 1
+        else:
+            return 0
