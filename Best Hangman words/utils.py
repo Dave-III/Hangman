@@ -2,6 +2,7 @@
 
 from enum import Enum
 from typing import List, Tuple
+import threading
 import time
 
 WORDLIST_PATH = "words_alpha.txt"
@@ -55,8 +56,8 @@ class TerminalColours(Enum):
     
     TEST = '\033[38;5;52m'
 
-    @staticmethod
-    def printColour(colour: "TerminalColours", string: str) -> None:
+    @classmethod
+    def printColour(cls, colour: "TerminalColours", string: str) -> None:
         """ Prints a message with the respective formatting applied.
         
         :param colour: The formatting to apply.
@@ -64,8 +65,8 @@ class TerminalColours(Enum):
         """
         print(f'{colour.value}{string}{TerminalColours.END.value}')
 
-    @staticmethod
-    def printMulticolour(colourStringPairs: List[Tuple["TerminalColours", str]]) -> None:
+    @classmethod
+    def printMulticolour(cls, colourStringPairs: List[Tuple["TerminalColours", str]]) -> None:
         """ Prints a message multiple formats applied.
         
         :param colourStringPairs: Tuple pairs of the formatting and message respectively.
@@ -75,8 +76,8 @@ class TerminalColours(Enum):
             finalString += f'{colour.value}{word}{TerminalColours.END.value}'
         print(finalString)
 
-    @staticmethod
-    def printAlternatingColour(colours: List["TerminalColours"], string: str) -> None:
+    @classmethod
+    def printAlternatingColour(cls, colours: List["TerminalColours"], string: str) -> None:
         """ Prints a message with cyclic alternating formats.
         
         :param colours: The colours/formats to apply, in order.
@@ -87,27 +88,45 @@ class TerminalColours(Enum):
             finalString += f"{colours[index % len(colours)].value}{char}{TerminalColours.END.value}"
         print(finalString)
 
-    @staticmethod
-    def _testColours():
+    @classmethod
+    def _testColours(cls):
         for x in [formatting for formatting in TerminalColours]:
             print(f"{x.value}{x}{TerminalColours.END.value}")
 
 class BufferText:
-    def __init__(self):
-        pass
+    runFlag = threading.Event()
+    mainThread = None
 
-    def loading_animation(message="Processing"):
+    @classmethod
+    def start(cls, message="Processing", endMessage=False):
+        cls.mainThread = threading.Thread(target=cls.loadingAnimation, args=(message, endMessage))
+        cls.mainThread.start()
+
+    @classmethod
+    def loadingAnimation(cls, message, endMsg):
+        cls.runFlag.set()
         i = 0
-        while True:
+        while cls.runFlag.is_set():
             dots = '.' * (i % 4)
-            print(f"\rTest{dots}   ", flush=True, end='')
+            print(f"\r{message}{dots}   ", flush=True, end='')
             time.sleep(0.5)
             i += 1
+        if endMsg:
+            print(f"\r{' '*(len(message)+3)}\rDone!")
+        else:
+            print(f"\r{' '*(len(message)+3)}")
+
+
+    @classmethod
+    def stop(cls):
+        cls.runFlag.clear()
+        cls.mainThread.join()
 
 if __name__ == "__main__":
     TerminalColours.printColour(TerminalColours.TEST, "test text")
     TerminalColours.printMulticolour([(TerminalColours.REG_CYAN, "test "), (TerminalColours.REG_PINK, "message "), (TerminalColours.REG_YELLOW, "end")])
     TerminalColours.printAlternatingColour([TerminalColours.REG_BLUE, TerminalColours.BKG_CYAN, TerminalColours.BLD_RED], "soliloquy")
     TerminalColours._testColours()
-    # q = BufferText()
-    # q.loading_animation()
+    BufferText.start("damn tests", True)
+    time.sleep(5)
+    BufferText.stop()
