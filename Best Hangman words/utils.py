@@ -2,6 +2,7 @@
 
 from enum import Enum
 from typing import List, Tuple
+from contextlib import contextmanager
 import threading
 import time
 
@@ -98,9 +99,13 @@ class BufferText:
     mainThread = None
 
     @classmethod
-    def start(cls, message="Processing", endMessage=False):
+    @contextmanager
+    def loadingText(cls, message="Processing", endMessage=False):
         cls.mainThread = threading.Thread(target=cls.loadingAnimation, args=(message, endMessage))
         cls.mainThread.start()
+        yield
+        cls.runFlag.clear()
+        cls.mainThread.join()
 
     @classmethod
     def loadingAnimation(cls, message, endMsg):
@@ -114,19 +119,12 @@ class BufferText:
         if endMsg:
             print(f"\r{' '*(len(message)+3)}\rDone!")
         else:
-            print(f"\r{' '*(len(message)+3)}")
-
-
-    @classmethod
-    def stop(cls):
-        cls.runFlag.clear()
-        cls.mainThread.join()
+            print(f"\r{' '*(len(message)+3)}\r", end='')
 
 if __name__ == "__main__":
     TerminalColours.printColour(TerminalColours.TEST, "test text")
     TerminalColours.printMulticolour([(TerminalColours.REG_CYAN, "test "), (TerminalColours.REG_PINK, "message "), (TerminalColours.REG_YELLOW, "end")])
     TerminalColours.printAlternatingColour([TerminalColours.REG_BLUE, TerminalColours.BKG_CYAN, TerminalColours.BLD_RED], "soliloquy")
     TerminalColours._testColours()
-    BufferText.start("damn tests", True)
-    time.sleep(5)
-    BufferText.stop()
+    with BufferText.loadingText():
+        time.sleep(3)
