@@ -23,9 +23,6 @@ class WordSpecies:
         
         return self.adjustedWordScore
     
-    # def inverseWeightEquation(self, score):
-    #     return (1/1.425)*(1-math.exp(-(score-0.6)**2/(0.25**2))) + 0.5
-    
     def inverseWeightEquation(self, score):
         return (1/1.425)*(1-math.exp(-(score-self.mean)**2/(8*(self.std**2)))) + 0.5
     
