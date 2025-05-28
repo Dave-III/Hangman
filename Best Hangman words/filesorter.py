@@ -11,12 +11,12 @@ def file_sorter(filename):
         total = 0
         for word in file_data:
             #currently if it finds 100 invalid words it will break the loop
-            if count == 100:
+            if count == 20:
                 break
             #if the word is invalid then prints the word
             total += 1
-            if isvalid(word) == 1:
-                print(word)
+            if not isvalid(word):
+                blacklist_words.append(word)
                 count += 1
             word = word.lower()
             word_list = list(word)
@@ -38,7 +38,8 @@ def file_sorter(filename):
 
         file.truncate()
 
-        print(blacklist_words)
+        for word in blacklist_words:
+            print(word, end=" ")
         print(count)
         print(total)
 
