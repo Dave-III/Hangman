@@ -16,4 +16,4 @@ A hangman project, using [this word list](https://github.com/dwyl/english-words)
  - [ ] Implement Main function to run all processes
  - [ ] finish implementing webscraping code to remove all non-dictionary words, excluding plurals (Future).
 
- I dont want this list to be too overwhelming lol so I'm trying to limit all the things that I add to it.
+ I dont want this list to be too overwhelming lol, so I'm trying to limit all the things that I add to it.
