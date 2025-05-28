@@ -1,4 +1,8 @@
 import random
+import utils
+
+GAME_VALID = ["1", "game", "hangman game", "hangman", "g"]
+SOLVER_VALID = ["2", "solver", "hangman solver", "solve", "s"]
 
 class HangmanSession:
 
@@ -24,5 +28,11 @@ class HangmanSession:
                 loopFlag = False
 
 if __name__ == "__main__":
-    q = HangmanSession()
-    q.main()
+    userIn = input("[1] Hangman Game\n[2] Hangman Solver\n[3] Exit\n>>> ")
+    if userIn.lower() in GAME_VALID:
+        q = HangmanSession()
+        q.main()
+    elif userIn.lower() in SOLVER_VALID:
+        pass
+    else:
+        pass

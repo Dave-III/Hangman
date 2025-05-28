@@ -23,23 +23,21 @@ def isvalid(word):
 
     #added sleep interval to prevent spam pinging the server
     time.sleep(random.randint(100, 1000)/1000)
-    BufferText.start()
-    web_dict = requests.get(f"https://www.dictionary.com/browse/{word}")
-    BufferText.stop()
+    with BufferText.loadingText("Requesting"):
+        web_dict = requests.get(f"https://www.dictionary.com/browse/{word}")
     print(web_dict)
 
 
     # if page does not exist, return invalid word
     if web_dict.status_code != 200:
-        BufferText.start()
-        web_wikt = requests.get(f"https://en.wiktionary.org/wiki/{word}")
-        BufferText.stop()
+        with BufferText.loadingText("Requesting"):
+            web_wikt = requests.get(f"https://en.wiktionary.org/wiki/{word}")
         print(web_wikt)
         if web_wikt.status_code != 200:
             return False
         else:
             broth = bs(web_wikt.content, 'html.parser')
-            main_tag = broth.find_all("div", {"class": "mw-content-ltr"})[0]
+            main_tag = broth.find("div", {"class": "mw-content-ltr"})
             main_text = main_tag.get_text()
             main_text = main_text.splitlines()
             for line in main_text:

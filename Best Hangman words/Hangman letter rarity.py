@@ -119,6 +119,7 @@ class WordScore:
 
         return f"The closest word to the average is '{closest_word[0]}' with a score of {closest_word[1]}"
 
-#calls the function
-ws = WordScore()
-print(ws)
+if __name__ == "__main__":
+    #calls the function
+    ws = WordScore()
+    print(ws)

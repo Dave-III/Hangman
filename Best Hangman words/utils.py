@@ -9,6 +9,12 @@ import time
 WORDLIST_PATH = "words_alpha.txt"
 NON_ALPHA = r'''1234567890`~!@#$%^&*()_+-=[]{}\|;:'",.<>/?'''
 
+def askUntilValid(prompt: str, valid: List[str]) -> str:
+    userResult = None
+    while userResult not in valid:
+        userResult = input(prompt)
+    return userResult
+
 class TerminalColours(Enum):
     """Class for holding common colours and formats for CLI usage."""
     END = '\033[0m'
