@@ -15,6 +15,12 @@ def askUntilValid(prompt: str, valid: List[str]) -> str:
         userResult = input(prompt)
     return userResult
 
+def ceil(number: float) -> int:
+    if number - int(number) == 0:
+        return int(number)
+    else:
+        return int(number) + 1
+
 class TerminalColours(Enum):
     """Class for holding common colours and formats for CLI usage."""
     END = '\033[0m'
@@ -62,6 +68,15 @@ class TerminalColours(Enum):
     BKG_WHITE = '\033[0;107m'
     
     TEST = '\033[38;5;52m'
+
+    @classmethod
+    def applyColour(cls, colour: "TerminalColours", string: str) -> None:
+        """ Returns a message with the respective formatting applied.
+        
+        :param colour: The formatting to apply.
+        :param string: The message to format.
+        """
+        return f'{colour.value}{string}{TerminalColours.END.value}'
 
     @classmethod
     def printColour(cls, colour: "TerminalColours", string: str) -> None:
