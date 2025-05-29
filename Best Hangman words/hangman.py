@@ -15,11 +15,13 @@ class HangmanSession:
     def main(self):
         loopFlag = True
         while loopFlag:
-            userInput = input("Select:\n[Guess Letter] [Restart] [Exit]\n>>> ")
+            userInput = input("Select:\n[Guess Letter] [Restart] [Back] [Exit]\n>>> ")
             if userInput.lower() == "g":
                 pass
             elif userInput.lower() == "r":
                 print(self.wordToGuess)
+            elif userInput.lower() == "b":
+                pass
             elif userInput.lower() == "e":
                 loopFlag = False
 
