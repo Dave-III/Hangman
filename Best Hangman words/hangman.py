@@ -3,9 +3,7 @@ import utils
 from utils import TerminalColours as tc
 import wordSolver
 
-GAME_VALID = ["1", "game", "hangman game", "hangman", "g"]
-SOLVER_VALID = ["2", "solver", "hangman solver", "solve", "s"]
-EXIT_VALID = ["3", "exit", "e"]
+# TODO by chance, words can be randomly selected consecutively
 
 class HangmanSession:
 
@@ -45,7 +43,7 @@ class HangmanSession:
         while True:
             try:
                 userIn = input("How many letters? (leave blank for random):\n>>> ")
-                if (input == ''):
+                if (userIn == ''):
                     self.wordLength = 0
                     break
                 self.wordLength = int(userIn)
@@ -57,8 +55,8 @@ class HangmanSession:
                 print("Error: must be a number")
 
     def endDialog(self):
-        userIn = utils.askUntilValid("[New Word] [Exit]\n>>> ", EXIT_VALID + ["nw", "n", "new word", "new", "word"])
-        if userIn in EXIT_VALID:
+        userIn = utils.askUntilValid("[New Word] [Exit]\n>>> ", ["exit", "e"] + ["nw", "n", "new word", "new", "word"])
+        if userIn in ["exit", "e"]:
             return False
         else:
             tc.printColour(tc.BLD_CYAN, "---------- NEW GAME ----------")
@@ -67,26 +65,28 @@ class HangmanSession:
     def main(self):
         self.selectDialog()
         self.reset()
-        loopFlag = True
-        while loopFlag:
+        while True:
             print(f"Current Word State ({len(self.wordState)} letters): {self.wordState}")
             if self.guessCount != 0:
                 self.showGuessed()
             userInput = input("\nType any letter, or:\n[Restart] [Back] [Exit]\n>>> ").lower()
             if userInput == "restart":
-                print(self.wordToGuess)
+                tc.printColour(tc.BLD_CYAN, "\nRestarting...")
+                self.reset()
             elif userInput == "back":
-                pass
+                tc.printColour(tc.BLD_CYAN, "\nExiting Hangman Game...")
+                return 1
             elif userInput == "exit":
-                loopFlag = False
+                tc.printColour(tc.BLD_CYAN, "\nExiting Program...")
+                return 0
             else:
-                if len(userInput) != 1:
+                if len(userInput) != 1: # longer than 1 letter
                     tc.printColour(tc.REG_RED, "Error: Must input a single letter!\n")
                     continue
-                elif userInput not in list("abcdefghijklmnopqrstuvwyxz"):
+                elif userInput not in list("abcdefghijklmnopqrstuvwyxz"): # not alphabetical
                     tc.printColour(tc.REG_RED, "Error: Must not be a number or special character!\n")
                     continue
-                elif userInput in self.guessedLetters:
+                elif userInput in self.guessedLetters: # already guessed
                     tc.printColour(tc.REG_RED, "Error: Letter has already been guessed!\n")
                     continue
                 else:
@@ -102,24 +102,10 @@ class HangmanSession:
                         if self.endDialog():
                             self.reset()
                         else:
-                            loopFlag = False
+                            tc.printColour(tc.BLD_CYAN, "\nExiting Program...")
+                            return 0
                     else:
                         self.guessCount += 1
 
 if __name__ == "__main__":
-    # TODO migrate to separate file at a later date.
-    userIn = utils.askUntilValid("[1] Hangman Game\n[2] Hangman Solver\n[3] Exit\n>>> ", GAME_VALID + SOLVER_VALID + EXIT_VALID)
-    if userIn.lower() in GAME_VALID:
-        q = HangmanSession()
-        q.main()
-    elif userIn.lower() in SOLVER_VALID:
-        while True:
-            try:
-                wordLength = int(input("What is the word length?\n>>> "))
-            except ValueError:
-                continue
-            break
-        solver = wordSolver.HangmanSolver(wordLength)
-        solver.start()
-    else:
-        pass
+    print("Please run main.py...")
