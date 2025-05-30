@@ -1,5 +1,6 @@
 import random
 import utils
+from utils import TerminalColours as tc
 import wordSolver
 
 GAME_VALID = ["1", "game", "hangman game", "hangman", "g"]
@@ -30,7 +31,7 @@ class HangmanSession:
     def showGuessed(self):
         print("Guessed Letters:")
         for counter, letter in enumerate(self.guessedLetters, start = 1):
-            print(f"\t{utils.TerminalColours.applyColour((utils.TerminalColours.REG_GREEN if letter in self.wordToGuess else utils.TerminalColours.REG_RED), letter)}", end='')
+            print(f"\t{tc.applyColour((tc.REG_GREEN if letter in self.wordToGuess else tc.REG_RED), letter)}", end='')
             if (counter % 5 == 0):
                 print()
         print()
@@ -53,7 +54,6 @@ class HangmanSession:
                     continue
                 break
             except ValueError:
-                # TODO error check case high numbers for no words - e.g. 500 letter word
                 print("Error: must be a number")
 
     def endDialog(self):
@@ -61,7 +61,7 @@ class HangmanSession:
         if userIn in EXIT_VALID:
             return False
         else:
-            utils.TerminalColours.printColour(utils.TerminalColours.BLD_CYAN, "---------- NEW GAME ----------")
+            tc.printColour(tc.BLD_CYAN, "---------- NEW GAME ----------")
             return True
 
     def main(self):
@@ -70,41 +70,41 @@ class HangmanSession:
         loopFlag = True
         while loopFlag:
             print(f"Current Word State ({len(self.wordState)} letters): {self.wordState}")
-            self.showGuessed()
-            userInput = input("Select:\n[Guess Letter] [Restart] [Back] [Exit]\n>>> ")
-            if userInput.lower()[0] == "g":
-                while True:
-                    userLetter = input("Letter to guess:\n>>> ").lower()
-                    if len(userLetter) != 1:
-                        print("Error: Must input a single letter!")
-                        continue
-                    elif userLetter not in "abcdefghijklmnopqrstuvwyxz":
-                        print("Error: Must not be a number or special character!")
-                        continue
-                    elif userLetter in self.guessedLetters:
-                        print("Error: Letter has already been guessed!")
-                        continue
-                    break
-                self.wordState = ''.join([
-                    userLetter.lower() if self.wordToGuess[index] == userLetter
-                    else self.wordState[index]
-                    for index in range(len(self.wordToGuess))
-                ])
-                self.guessedLetters.append(userLetter)
-                if self.wordState == self.wordToGuess:
-                    print(f"You have guessed the word {self.wordToGuess} in {self.guessCount} guesses!\nOptimally, you could have guessed the word in {len(set(list(self.wordToGuess)))} guesses.")
-                    if self.endDialog():
-                        self.reset()
-                    else:
-                        loopFlag = False
-                else:
-                    self.guessCount += 1
-            elif userInput.lower()[0] == "r":
+            if self.guessCount != 0:
+                self.showGuessed()
+            userInput = input("\nType any letter, or:\n[Restart] [Back] [Exit]\n>>> ").lower()
+            if userInput == "restart":
                 print(self.wordToGuess)
-            elif userInput.lower()[0] == "b":
+            elif userInput == "back":
                 pass
-            elif userInput.lower()[0] == "e":
+            elif userInput == "exit":
                 loopFlag = False
+            else:
+                if len(userInput) != 1:
+                    tc.printColour(tc.REG_RED, "Error: Must input a single letter!\n")
+                    continue
+                elif userInput not in list("abcdefghijklmnopqrstuvwyxz"):
+                    tc.printColour(tc.REG_RED, "Error: Must not be a number or special character!\n")
+                    continue
+                elif userInput in self.guessedLetters:
+                    tc.printColour(tc.REG_RED, "Error: Letter has already been guessed!\n")
+                    continue
+                else:
+                    self.wordState = ''.join([
+                        userInput if self.wordToGuess[index] == userInput
+                        else self.wordState[index]
+                        for index in range(len(self.wordToGuess))
+                    ])
+                    self.guessedLetters.append(userInput)
+                    if self.wordState == self.wordToGuess:
+                        print(f"You have guessed the word {tc.applyColour(tc.BLD_YELLOW, self.wordToGuess)} in {tc.applyColour(tc.REG_YELLOW, self.guessCount)} guesses!\n" +
+                              f"Optimally, you could have guessed the word in {len(set(list(self.wordToGuess)))} guesses.")
+                        if self.endDialog():
+                            self.reset()
+                        else:
+                            loopFlag = False
+                    else:
+                        self.guessCount += 1
 
 if __name__ == "__main__":
     # TODO migrate to separate file at a later date.
