@@ -16,5 +16,6 @@ A hangman project, using [this word list](https://github.com/dwyl/english-words)
  - [x] Inline buffering screen for long processings (e.g. Loading...)
  - [ ] Implement Main function to run all processes
  - [ ] Finish implementing webscraping code to remove all non-dictionary words, excluding plurals (Future).
+ - [ ] Add probability-based stats for average/optimal letter selection in the hangman game
 
  I dont want this list to be too overwhelming lol, so I'm trying to limit all the things that I add to it.
