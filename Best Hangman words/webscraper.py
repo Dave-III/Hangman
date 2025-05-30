@@ -47,8 +47,16 @@ class WordValidator:
 # Determines if a word is valid based on its dictionary.com or wiktionary entry
 # Returns (word, True/False)
     def isvalid(self, word):
+        
+        #moved testcase from filesorter to webscraper isvalid
+        word = word.lower()
+        word_list = list(word)
+
+        if all(vowel not in word_list for vowel in ['a', 'e', 'i', 'o', 'u', 'y']):
+            return (word, False)
+
         #added sleep interval to prevent spam pinging the server
-        time.sleep(random.randint(100, 250)/1000)
+        time.sleep(random.randint(0.05, 0.1))
 
         try:
             #First attempt: dictionary.com

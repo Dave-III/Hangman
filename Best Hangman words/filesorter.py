@@ -1,47 +1,31 @@
-from webscraper import isvalid
+from webscraper import WordValidator
 
 
 """ Removes all words in a given file that does not contain any vowels (including y)"""
 
-def file_sorter(filename):
+def file_sorter(filename, size):
     with open(filename, "r+") as file:
-        file_data = file.read().splitlines()
         blacklist_words = []
-        count = 0
-        total = 0
-        for word in file_data:
-            #currently if it finds 100 invalid words it will break the loop
-            if count == 20:
-                break
-            #if the word is invalid then prints the word
-            total += 1
-            if not isvalid(word):
-                blacklist_words.append(word)
-                count += 1
-            word = word.lower()
-            word_list = list(word)
-            # untested alternative
-            # if all(x not in word_list for x in ['a', 'e', 'i', 'o', 'u', 'y']):
-            #     blacklist_words.append(word)
-            if "a" not in word_list:
-                if "e" not in word_list:
-                    if "i" not in word_list:
-                        if "o" not in word_list:
-                            if "u" not in word_list:
-                                if "y" not in word_list:
-                                    blacklist_words.append(word)
-        file.seek(0)
-        
+        file_data = file.read().splitlines()
+        validator = WordValidator(num_workers=12)  # Create once
+        results = validator.validate_words(file_data[:300])  # Pass full list at once
+
+        blacklist_words = [word for word, valid in results.items() if not valid]
+        return blacklist_words
+        # Rewind file pointer and write only valid words back
+        """file.seek(0)
         for word in file_data:
             if word not in blacklist_words:
                 file.write(word + "\n")
-
         file.truncate()
 
+        # Print blacklisted words for info
         for word in blacklist_words:
             print(word, end=" ")
-        print(count)
-        print(total)
+        print(f"\nTotal blacklisted words: {len(blacklist_words)}")"""
 
-filename = input("enter filename: ")
-file_sorter(filename)
+
+if __name__ == "__main__":
+    all_words = file_sorter("words_alpha.txt", 100)
+    for word in all_words:
+        print(word)
