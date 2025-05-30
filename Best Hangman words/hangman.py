@@ -11,16 +11,20 @@ class HangmanSession:
     def __init__(self):
         self.wordToGuess = ''
         self.wordState = None
+        self.wordLength = 0
         self.guessCount = 0
         self.guessedLetters = []
 
         with open(utils.WORDLIST_PATH) as wordFile:
             self.wordlist = wordFile.read().splitlines()
 
-        self.selectWord()
+        self.WORD_MAX = max([len(word) for word in self.wordlist])
 
     def selectWord(self):
-        self.wordToGuess = random.choice(self.wordlist)
+        if self.wordLength == 0:
+            self.wordToGuess = random.choice(self.wordlist)
+        else:
+            self.wordToGuess = random.choice([word for word in self.wordlist if len(word) == self.wordLength])
         self.wordState = "_" * len(self.wordToGuess)
 
     def showGuessed(self):
@@ -36,6 +40,22 @@ class HangmanSession:
         self.guessedLetters = []
         self.selectWord()
 
+    def selectDialog(self):
+        while True:
+            try:
+                userIn = input("How many letters? (leave blank for random):\n>>> ")
+                if (input == ''):
+                    self.wordLength = 0
+                    break
+                self.wordLength = int(userIn)
+                if self.wordLength > self.WORD_MAX or self.wordLength <= 0:
+                    print(f"Error: no words found with length {self.wordLength}")
+                    continue
+                break
+            except ValueError:
+                # TODO error check case high numbers for no words - e.g. 500 letter word
+                print("Error: must be a number")
+
     def endDialog(self):
         userIn = utils.askUntilValid("[New Word] [Exit]\n>>> ", EXIT_VALID + ["nw", "n", "new word", "new", "word"])
         if userIn in EXIT_VALID:
@@ -45,9 +65,11 @@ class HangmanSession:
             return True
 
     def main(self):
+        self.selectDialog()
+        self.reset()
         loopFlag = True
         while loopFlag:
-            print(f"Current Word State: {self.wordState}")
+            print(f"Current Word State ({len(self.wordState)} letters): {self.wordState}")
             self.showGuessed()
             userInput = input("Select:\n[Guess Letter] [Restart] [Back] [Exit]\n>>> ")
             if userInput.lower()[0] == "g":
@@ -63,7 +85,11 @@ class HangmanSession:
                         print("Error: Letter has already been guessed!")
                         continue
                     break
-                self.wordState = ''.join([userLetter.lower() if self.wordToGuess[index] == userLetter else self.wordState[index] for index in range(len(self.wordToGuess))])
+                self.wordState = ''.join([
+                    userLetter.lower() if self.wordToGuess[index] == userLetter
+                    else self.wordState[index]
+                    for index in range(len(self.wordToGuess))
+                ])
                 self.guessedLetters.append(userLetter)
                 if self.wordState == self.wordToGuess:
                     print(f"You have guessed the word {self.wordToGuess} in {self.guessCount} guesses!\nOptimally, you could have guessed the word in {len(set(list(self.wordToGuess)))} guesses.")
