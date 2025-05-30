@@ -5,6 +5,9 @@ NULL_CHARS = ['-', '_', '*', '/']
 BLACKLIST_STR = r"!@#$%^&*()_-+=[]\\|;':<,>.?/"
 TERMINAL_LINE_LIMIT = 120
 
+# TODO add letter progress indicator
+# TODO have initial word length query
+
 class HangmanSolver:
     def __init__(self, wordLength: int, verbose = False):
         self.length = wordLength
@@ -150,5 +153,5 @@ class HangmanSolver:
             self.evaluateState()
 
 if __name__ == "__main__":
-    q = HangmanSolver(10)
+    q = HangmanSolver(10, True)
     q.start()
