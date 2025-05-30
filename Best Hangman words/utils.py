@@ -10,16 +10,38 @@ WORDLIST_PATH = "words_alpha.txt"
 NON_ALPHA = r'''1234567890`~!@#$%^&*()_+-=[]{}\|;:'",.<>/?'''
 
 def askUntilValid(prompt: str, valid: List[str]) -> str:
+    """Repeats an input statement until a valid input is read.
+    
+    :param prompt: The message inside the input to ask the user
+    :param valid: A list of valid strings that will be accepted.
+    
+    :returns: A valid string inputted by the user."""
     userResult = None
     while userResult not in valid:
         userResult = input(prompt)
     return userResult
 
 def ceil(number: float) -> int:
+    """Conditional for ceiling rounding.
+    
+    :returns: The rounded number."""
     if number - int(number) == 0:
         return int(number)
     else:
         return int(number) + 1
+
+@contextmanager
+def openDynamic(*args, **kwargs):
+    """Fix for running scripts from the repo folder, crashing when run from the file directly.
+    
+    :param args: Positional arguments passed to the built-in open().
+    :param kwargs: Keyword arguments passed to the built-in open().
+    :yields: A file object like called by `open()`."""
+    try:
+        yield open(*args, **kwargs)
+    except FileNotFoundError:
+        oneOutArgs = (f"../{args[0]}",) + args[1:]
+        yield open(*oneOutArgs, **kwargs)
 
 class TerminalColours(Enum):
     """Class for holding common colours and formats for CLI usage."""
@@ -79,16 +101,7 @@ class TerminalColours(Enum):
         return f'{colour.value}{string}{TerminalColours.END.value}'
 
     @classmethod
-    def printColour(cls, colour: "TerminalColours", string: str) -> None:
-        """ Prints a message with the respective formatting applied.
-        
-        :param colour: The formatting to apply.
-        :param string: The message to format.
-        """
-        print(f'{colour.value}{string}{TerminalColours.END.value}')
-
-    @classmethod
-    def printMulticolour(cls, colourStringPairs: List[Tuple["TerminalColours", str]]) -> None:
+    def applyMulticolour(cls, colourStringPairs: List[Tuple["TerminalColours", str]]) -> None:
         """ Prints a message multiple formats applied.
         
         :param colourStringPairs: Tuple pairs of the formatting and message respectively.
@@ -96,10 +109,10 @@ class TerminalColours(Enum):
         finalString = ''
         for colour, word in colourStringPairs:
             finalString += f'{colour.value}{word}{TerminalColours.END.value}'
-        print(finalString)
+        return finalString
 
     @classmethod
-    def printAlternatingColour(cls, colours: List["TerminalColours"], string: str) -> None:
+    def applyAlternatingColour(cls, colours: List["TerminalColours"], string: str) -> None:
         """ Prints a message with cyclic alternating formats.
         
         :param colours: The colours/formats to apply, in order.
@@ -108,44 +121,51 @@ class TerminalColours(Enum):
         finalString = ''
         for index, char in enumerate(list(string)):
             finalString += f"{colours[index % len(colours)].value}{char}{TerminalColours.END.value}"
-        print(finalString)
+        return finalString
 
     @classmethod
-    def _testColours(cls):
+    def __testColours(cls):
         for x in [formatting for formatting in TerminalColours]:
             print(f"{x.value}{x}{TerminalColours.END.value}")
 
 class BufferText:
+    """Small class solely to hold a loading text function via multithreading."""
     runFlag = threading.Event()
     mainThread = None
 
     @classmethod
     @contextmanager
-    def loadingText(cls, message="Processing", endMessage=False):
-        cls.mainThread = threading.Thread(target=cls.loadingAnimation, args=(message, endMessage))
+    def loadingText(cls, message: str ="Processing", endMessage:str=''):
+        """Activates the loading text thread. To be used for in a `with` statement.
+        Works best with no other stdout writing occuring while running.
+        
+        :param message: The message to print and append ellipses onto. Defaults to "Processing"
+        :param endMessage: A message to print before exiting. By default, no message is printed."""
+        cls.mainThread = threading.Thread(target=cls.__loadingAnimation, args=(message, endMessage))
         cls.mainThread.start()
         yield
         cls.runFlag.clear()
         cls.mainThread.join()
 
     @classmethod
-    def loadingAnimation(cls, message, endMsg):
+    def __loadingAnimation(cls, message: str, endMsg: str = '') -> None:
         cls.runFlag.set()
         i = 0
         while cls.runFlag.is_set():
             dots = '.' * (i % 4)
             print(f"\r{message}{dots}   ", flush=True, end='')
-            time.sleep(0.5)
+            time.sleep(0.4)
             i += 1
-        if endMsg:
-            print(f"\r{' '*(len(message)+3)}\rDone!")
-        else:
+        if endMsg == '':
             print(f"\r{' '*(len(message)+3)}\r", end='')
+        else:
+            print(f"\r{' '*(len(message)+3)}\r{endMsg}")
+            
 
 if __name__ == "__main__":
-    TerminalColours.printColour(TerminalColours.TEST, "test text")
-    TerminalColours.printMulticolour([(TerminalColours.REG_CYAN, "test "), (TerminalColours.REG_PINK, "message "), (TerminalColours.REG_YELLOW, "end")])
-    TerminalColours.printAlternatingColour([TerminalColours.REG_BLUE, TerminalColours.BKG_CYAN, TerminalColours.BLD_RED], "soliloquy")
-    TerminalColours._testColours()
+    print(TerminalColours.applyColour(TerminalColours.TEST, "test text"))
+    print(TerminalColours.printMulticolour([(TerminalColours.REG_CYAN, "test "), (TerminalColours.REG_PINK, "message "), (TerminalColours.REG_YELLOW, "end")]))
+    print(TerminalColours.printAlternatingColour([TerminalColours.REG_BLUE, TerminalColours.BKG_CYAN, TerminalColours.BLD_RED], "soliloquy"))
+    TerminalColours.__testColours()
     with BufferText.loadingText():
         time.sleep(3)

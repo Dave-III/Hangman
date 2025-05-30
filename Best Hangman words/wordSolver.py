@@ -1,4 +1,4 @@
-from utils import WORDLIST_PATH
+import utils
 from collections import defaultdict
 
 NULL_CHARS = ['-', '_', '*', '/']
@@ -15,7 +15,7 @@ class HangmanSolver:
         self.initialiseWordList()
 
     def initialiseWordList(self):
-        with open(WORDLIST_PATH, "r") as file:
+        with utils.openDynamic(utils.WORDLIST_PATH, "r") as file:
             self.wordList = [word for word in file.read().splitlines() if len(word) == self.length]
         if self.verbose:
             print(f"Word List initialised: {len(self.wordList)} words.")

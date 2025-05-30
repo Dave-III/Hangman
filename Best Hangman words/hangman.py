@@ -19,7 +19,7 @@ class HangmanSession:
         self.guessCount = 0
         self.guessedLetters = []
 
-        with open(utils.WORDLIST_PATH) as wordFile:
+        with utils.openDynamic(utils.WORDLIST_PATH) as wordFile:
             self.wordlist = wordFile.read().splitlines()
 
         self.WORD_MAX = max([len(word) for word in self.wordlist])
@@ -135,3 +135,5 @@ class HangmanSession:
 
 if __name__ == "__main__":
     print("Please run main.py...")
+    q = HangmanSession()
+    q.main()

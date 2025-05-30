@@ -21,7 +21,7 @@ def main():
                     break
                 case 1:
                     continue
-                
+
         # if solver selected
         elif userIn.lower() in SOLVER_VALID:
             while True:
