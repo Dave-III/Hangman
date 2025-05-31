@@ -79,18 +79,12 @@ class WordScore:
 
         #returns all words with correct length in sorted order from highest score to lowest
         self.top_scorers = correct_len_list
+        return self.top_scorers
 
-
-    def wordpicker(self, word_len):
-
-            
-        top_scores = self.get_rarest(word_len)
+    def wordpicker(self, user_dif=2):
+        top_scores = self.get_rarest()
         import random
-        try:
-            user_dif = int(input("Enter number for difficulty: (3 = hard, 2 = medium, 1 = easy): "))
-        except ValueError:
-            print("Invalid input. Defaulting to medium difficulty.")
-            user_dif = 2
+        
         
         total = len(top_scores)
         if user_dif == 1:
@@ -120,7 +114,7 @@ class WordScore:
         print("\n")
         
         self.score_word(user_input) #collects all word scores
-        self.get_rarest() #collects highest scoring words based off user input.
+        top_scorers = self.get_rarest() #collects highest scoring words based off user input.
 
         
         if self.top_scorers == []: #if the list is empty prompts user with error (fail-safe)
