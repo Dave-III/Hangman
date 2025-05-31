@@ -7,7 +7,17 @@ import random
 import utils
 from utils import TerminalColours as tc
 
-# TODO by chance, words can be randomly selected consecutively
+HANGMAN1 = "\n\n\n\n\n\n=========="
+HANGMAN2 = "+\n|\n|\n|\n|\n|\n=========="
+HANGMAN3 = "+---+\n|\n|\n|\n|\n|\n=========="
+HANGMAN4 = "+---+\n|   |\n|\n|\n|\n|\n=========="
+HANGMAN5 = "+---+\n|   |\n|   O\n|\n|\n|\n=========="
+HANGMAN6 = "+---+\n|   |\n|   O\n|   |\n|\n|\n=========="
+HANGMAN7 = "+---+\n|   |\n|   O\n|   |\\\n|\n|\n=========="
+HANGMAN8 = "+---+\n|   |\n|   O\n|  /|\\\n|\n|\n=========="
+HANGMAN9 = "+---+\n|   |\n|   O\n|  /|\\\n|  /\n|\n=========="
+HANGMAN10 = "+---+\n|   |\n|   O\n|  /|\\\n|  / \\\n|\n=========="
+HANGMAN_STATE = [HANGMAN1, HANGMAN2, HANGMAN3, HANGMAN4, HANGMAN5, HANGMAN6, HANGMAN7, HANGMAN8, HANGMAN9, HANGMAN10]
 
 class HangmanSession:
 
@@ -18,6 +28,7 @@ class HangmanSession:
         self.wordLength = 0
         self.guessCount = 0
         self.guessedLetters = []
+        self.badLetters = 0
 
         with utils.openDynamic(utils.WORDLIST_PATH) as wordFile:
             self.wordlist = wordFile.read().splitlines()
@@ -25,7 +36,7 @@ class HangmanSession:
         self.WORD_MAX = max([len(word) for word in self.wordlist])
 
     def __selectWord(self):
-        """Selects the word to be used, considering the user-input for word length"""
+        """Selects the word to be used, considering the user-input for word length."""
         if self.wordLength == 0:
             self.wordToGuess = random.choice(self.wordlist)
         else:
@@ -44,6 +55,7 @@ class HangmanSession:
     def __reset(self):
         """Helper function to reset the game, reverting guessed letters and selecting a new word."""
         self.guessCount = 0
+        self.badLetters = 0
         self.guessedLetters = []
         self.__selectWord()
 
@@ -71,7 +83,7 @@ class HangmanSession:
         if userIn in ["exit", "e"]:
             return False
         else:
-            tc.printColour(tc.BLD_CYAN, "---------- NEW GAME ----------")
+            print(tc.applyColour(tc.BLD_CYAN, "---------- NEW GAME ----------"))
             return True
 
     def main(self):
@@ -88,33 +100,45 @@ class HangmanSession:
             print(f"Current Word State ({len(self.wordState)} letters): {self.wordState}")
             if self.guessCount != 0:
                 self.__showGuessed()
+            if self.badLetters != 0:
+                print(f"\n{HANGMAN_STATE[self.badLetters - 1]}")
+
+            if self.badLetters == 10:
+                print(f"\n{tc.applyColour(tc.BLD_RED, 'You have lost!')} The word was {tc.applyColour(tc.BLD_YELLOW, self.wordToGuess)}.")
+                if self.__endDialog():
+                    self.__reset()
+                else:
+                    print(tc.applyColour(tc.BLD_CYAN, "\nExiting Program..."))
+                    return 0
 
             # Queries user input for special function or letter guessing
             userInput = input("\nType any letter, or:\n[Restart] [Back] [Exit]\n>>> ").lower()
             if userInput == "restart":
-                tc.printColour(tc.BLD_CYAN, "\nRestarting...")
+                print(tc.applyColour(tc.BLD_CYAN, "\nRestarting..."))
                 self.__reset()
             elif userInput == "back":
-                tc.printColour(tc.BLD_CYAN, "\nExiting Hangman Game...")
+                print(tc.applyColour(tc.BLD_CYAN, "\nExiting Hangman Game..."))
                 return 1
             elif userInput == "exit":
-                tc.printColour(tc.BLD_CYAN, "\nExiting Program...")
+                print(tc.applyColour(tc.BLD_CYAN, "\nExiting Program..."))
                 return 0
             
             # if letter guessing,
             else:
                 if len(userInput) != 1: # longer than 1 letter
-                    tc.printColour(tc.REG_RED, "Error: Must input a single letter!\n")
+                    print(tc.applyColour(tc.REG_RED, "Error: Must input a single letter!\n"))
                     continue
                 elif userInput not in list("abcdefghijklmnopqrstuvwyxz"): # not alphabetical
-                    tc.printColour(tc.REG_RED, "Error: Must not be a number or special character!\n")
+                    print(tc.applyColour(tc.REG_RED, "Error: Must not be a number or special character!\n"))
                     continue
                 elif userInput in self.guessedLetters: # already guessed
-                    tc.printColour(tc.REG_RED, "Error: Letter has already been guessed!\n")
+                    print(tc.applyColour(tc.REG_RED, "Error: Letter has already been guessed!\n"))
                     continue
 
                 # if valid, add letter, else keep previous letter
                 else:
+                    if userInput not in self.wordToGuess:
+                        self.badLetters += 1
                     self.wordState = ''.join([
                         new if new == userInput else old
                         for new, old in zip(self.wordToGuess, self.wordState)
@@ -123,17 +147,19 @@ class HangmanSession:
 
                     # if word has been fully guessed
                     if self.wordState == self.wordToGuess:
+                        # remove word from pool
+                        self.wordlist.remove(self.wordToGuess)
                         print(f"You have guessed the word {tc.applyColour(tc.BLD_YELLOW, self.wordToGuess)} in {tc.applyColour(tc.REG_YELLOW, self.guessCount)} guesses!\n" +
                               f"Optimally, you could have guessed the word in {len(set(list(self.wordToGuess)))} guesses.")
                         if self.__endDialog():
                             self.__reset()
                         else:
-                            tc.printColour(tc.BLD_CYAN, "\nExiting Program...")
+                            print(tc.applyColour(tc.BLD_CYAN, "\nExiting Program..."))
                             return 0
                     else:
                         self.guessCount += 1
 
 if __name__ == "__main__":
     print("Please run main.py...")
-    q = HangmanSession()
-    q.main()
+    for x in HANGMAN_STATE:
+        print(x)
