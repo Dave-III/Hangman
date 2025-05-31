@@ -3,12 +3,13 @@ from webscraper import WordValidator
 
 """ Removes all words in a given file that does not contain any vowels (including y)"""
 
-def file_sorter(filename, size):
+def file_sorter(filename):
     with open(filename, "r+") as file:
         blacklist_words = []
         file_data = file.read().splitlines()
         validator = WordValidator(num_workers=12)  # Create once
-        results = validator.validate_words(file_data[:300])  # Pass full list at once
+        file_data = file_data[300:]
+        results = validator.validate_words(file_data)  # Pass full list at once
 
         blacklist_words = [word for word, valid in results.items() if not valid]
         return blacklist_words
@@ -26,6 +27,6 @@ def file_sorter(filename, size):
 
 
 if __name__ == "__main__":
-    all_words = file_sorter("words_alpha.txt", 100)
+    all_words = file_sorter("words_alpha.txt")
     for word in all_words:
         print(word)
