@@ -56,7 +56,7 @@ class WordValidator:
             return (word, False)
 
         #added sleep interval to prevent spam pinging the server
-        time.sleep(random.randint(0.05, 0.1))
+        time.sleep(random.uniform(0.05, 0.1))
 
         try:
             #First attempt: dictionary.com
