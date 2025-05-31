@@ -80,6 +80,31 @@ class WordScore:
         #returns all words with correct length in sorted order from highest score to lowest
         self.top_scorers = correct_len_list
 
+
+    def wordpicker(self, top_scores):
+        import random
+        try:
+            user_dif = int(input("Enter number for difficulty: (3 = hard, 2 = medium, 1 = easy): "))
+        except ValueError:
+            print("Invalid input. Defaulting to medium difficulty.")
+            user_dif = 2
+        
+        total = len(top_scores)
+        if user_dif == 1:
+            lowest = total * 2 // 3
+            highest = total - 1
+        
+        if user_dif == 2:
+            lowest = total//3
+            highest = total * 2 // 3 - 1
+        
+        if user_dif == 3:
+            lowest = 0
+            highest = total//3 - 1
+
+        rank = random.randint(lowest, highest)
+        return top_scores[rank]
+        
     #adds UI for the code, allows user to see result
     def __str__(self):
         print('\n')
@@ -117,7 +142,14 @@ class WordScore:
         print("\n")
         print(f"Total number of words with a size of {user_input} is {len(self.top_scorers)}, and the average score was {average}")
 
+        random_word = self.wordpicker(self.top_scorers)
+        print()
+        print(f"random word picked under user difficulty is {random_word[0]} with a score of {random_word[1]}")
+        print()
+
         return f"The closest word to the average is '{closest_word[0]}' with a score of {closest_word[1]}"
+
+        
 
 if __name__ == "__main__":
     #calls the function
