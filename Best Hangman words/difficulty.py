@@ -139,7 +139,7 @@ class WordScore:
         print("\n")
         print(f"Total number of words with a size of {user_input} is {len(self.top_scorers)}, and the average score was {average}")
 
-        random_word = self.wordpicker()
+        random_word = self.wordpicker(user_input)
         print()
         print(f"random word picked under user difficulty is {random_word[0]} with a score of {random_word[1]}")
         print()
