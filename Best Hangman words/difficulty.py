@@ -1,4 +1,5 @@
 from consecutiveConsonants import WordSpecies
+from collections import defaultdict
 
 class LetterValue:
 
@@ -146,7 +147,39 @@ class WordScore:
 
         return f"The closest word to the average is '{closest_word[0]}' with a score of {closest_word[1]}"
 
+class WordScoring: # higher score -> harder
+    def __init__(self, wordlist):
+        self.wordlist = wordlist
+        self.scores = {}
+        self.letterCount = defaultdict(0)
+        for word in wordlist:
+            for letter in list(word):
+                self.letterCount[letter] += 1
+        self.letterWeight = {ch: 1 / freq for ch, freq in self.letterCount.items() if freq > 0} 
+
+        self.applyLetterWeight()
+        self.applyLengthBias()
+
+    def __iter__(self):
+        pass
+
+    def applyLengthBias(self):
+        def lengthEqu(wordLength):
+            # shortest word - 2 unique letters(?)
+            # most unique - 16 unique letters, always guessable w/ 10 lives
+            return (-14 * wordLength**2) + 16
         
+        for word in self.wordlist:
+            self.scores[word] *= lengthEqu(len(word))
+        
+
+    # probably ideal to wrap in loading text
+    def applyLetterWeight(self):
+        for word in self.wordlist:
+            # split word into set (remove duplicates), and sum weights
+            score = sum([self.letterWeight.get(letter) for letter in set(list(word))])
+            self.scores[word] = score
+
 
 if __name__ == "__main__":
     #calls the function

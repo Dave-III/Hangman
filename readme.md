@@ -14,7 +14,7 @@ A hangman project, using [this word list](https://github.com/dwyl/english-words)
  - [ ] collect human data guesses to find on average what characters humans are guessing to influence our weight scale (Future)
  - [ ] implement a proper hangman minigame in which the user can enter letters and the program will return visualised results. (Future)
  - [x] Inline buffering screen for long processings (e.g. Loading...)
- - [ ] Implement Main function to run all processes
+ - [x] Implement Main function to run all processes
  - [ ] Finish implementing webscraping code to remove all non-dictionary words, excluding plurals (Future).
  - [ ] Add probability-based stats for average/optimal letter selection in the hangman game
 
