@@ -6,6 +6,7 @@ To use, create a `HangmanSession` and call `main()`.
 import random
 import utils
 from utils import TerminalColours as tc
+from difficulty import WordScoring
 
 HANGMAN1 = "\n\n\n\n\n\n=========="
 HANGMAN2 = "+\n|\n|\n|\n|\n|\n=========="
@@ -29,6 +30,8 @@ class HangmanSession:
         self.guessCount = 0
         self.guessedLetters = []
         self.badLetters = 0
+        self.wordGen = None
+        self.difficulty = None
 
         with utils.openDynamic(utils.WORDLIST_PATH) as wordFile:
             self.wordlist = wordFile.read().splitlines()
@@ -37,10 +40,7 @@ class HangmanSession:
 
     def __selectWord(self):
         """Selects the word to be used, considering the user-input for word length."""
-        if self.wordLength == 0:
-            self.wordToGuess = random.choice(self.wordlist)
-        else:
-            self.wordToGuess = random.choice([word for word in self.wordlist if len(word) == self.wordLength])
+        self.wordToGuess = self.wordGen.selectWord(self.difficulty)
         self.wordState = "_" * len(self.wordToGuess)
 
     def __showGuessed(self):
@@ -74,6 +74,26 @@ class HangmanSession:
                 break
             except ValueError:
                 print("Error: must be a number")
+        with utils.BufferText.loadingText("Initialising Scores"):
+            if self.wordLength == 0:
+                self.wordGen = WordScoring(self.wordlist)
+            else:
+                self.wordGen = WordScoring([word for word in self.wordlist if len(word) == self.wordLength])
+        self._difficultyDialog()
+
+    def _difficultyDialog(self):
+        EASY = ['1', 'easy', 'e']
+        MEDIUM = ['2', 'medium', 'm']
+        HARD = ['3', 'hard', 'h']
+        userIn = utils.askUntilValid("Select Difficulty:\n1. Easy\n2. Medium\n3. Hard\n>>> ", EASY + MEDIUM + HARD)
+        if userIn in EASY:
+            self.difficulty = 1
+        elif userIn in MEDIUM:
+            self.difficulty = 2
+        elif userIn in HARD:
+            self.difficulty = 3
+        
+        
 
     def __endDialog(self):
         """Helper function to query the user what to do once the game has ended.
@@ -153,6 +173,7 @@ class HangmanSession:
                               f"Optimally, you could have guessed the word in {len(set(list(self.wordToGuess)))} guesses.")
                         if self.__endDialog():
                             self.__reset()
+                            continue
                         else:
                             print(tc.applyColour(tc.BLD_CYAN, "\nExiting Program..."))
                             return 0

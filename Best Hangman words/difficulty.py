@@ -3,6 +3,7 @@ from collections import defaultdict
 import math
 import re
 import heapq
+from random import choice
 
 class LetterValue:
 
@@ -109,7 +110,6 @@ class WordScore:
     #adds UI for the code, allows user to see result
     def __str__(self):
         print('\n')
-
         
         user_input = int(input("What length of word do you want: "))
 
@@ -176,6 +176,9 @@ class WordScoring: # higher score -> harder
         self.applyConsonantMult()
         self.cleanScores() # only rounds to 3 currently
 
+        # replace with sorted
+        self.scores = dict(sorted(self.scores.items(), key=lambda x: x[1]))
+
     def normaliseWeights(self, upscaler: int = 2) -> None:
         """Upscales and normalises letter weights to be relative to highest-weighted letter, which will always be `1 * upscaler`.
         
@@ -223,6 +226,17 @@ class WordScoring: # higher score -> harder
         for word in self.wordlist:
             self.scores[word] = round(self.scores[word], 3)
 
+    def selectWord(self, difficulty: int = 1):
+        count = len(self.scores)
+        quantiles = [count//3, (2*count)//3]
+        match difficulty:
+            case 1:
+                return choice(list(self.scores.keys())[:quantiles[0]])
+            case 2:
+                return choice(list(self.scores.keys())[quantiles[0]:quantiles[1]])
+            case 3:
+                return choice(list(self.scores.keys())[quantiles[1]:])
+
     def __str__(self):
         for word, score in self.scores.items():
             print(f"Word: {word}\tScore: {score}")
@@ -242,4 +256,6 @@ if __name__ == "__main__":
         print(f"Word: {x}\tScore: {y}")
     for x, y in heapq.nsmallest(100, ws.scores.items(), key=lambda x: x[1]):
         print(f"Word: {x}\tScore: {y}")
+    
+    ws._testDist()
     # print(heapq.nlargest(10, ws.scores, key=ws.scores.get))
