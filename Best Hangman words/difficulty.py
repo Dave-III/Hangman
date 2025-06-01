@@ -1,5 +1,8 @@
 from consecutiveConsonants import WordSpecies
 from collections import defaultdict
+import math
+import re
+import heapq
 
 class LetterValue:
 
@@ -148,40 +151,70 @@ class WordScore:
         return f"The closest word to the average is '{closest_word[0]}' with a score of {closest_word[1]}"
 
 class WordScoring: # higher score -> harder
-    def __init__(self, wordlist):
+    def __init__(self, wordlist): # assumed wordlist has already been length-filtered
+        self.SHORTCUT_DATA = (0.573, 0.092) #mean and std of all words, save calculation time
+
         self.wordlist = wordlist
         self.scores = {}
-        self.letterCount = defaultdict(0)
+        self.letterCount = defaultdict(int)
         for word in wordlist:
             for letter in list(word):
                 self.letterCount[letter] += 1
         self.letterWeight = {ch: 1 / freq for ch, freq in self.letterCount.items() if freq > 0} 
+        self.normaliseWeights()
 
         self.applyLetterWeight()
         self.applyLengthBias()
+        self.applyConsonantMult()
+        # self.cleanScores() # only rounds to 3 currently
 
     def __iter__(self):
         pass
 
-    def applyLengthBias(self):
-        def lengthEqu(wordLength):
-            # shortest word - 2 unique letters(?)
-            # most unique - 16 unique letters, always guessable w/ 10 lives
-            return (-14 * wordLength**2) + 16
-        
-        for word in self.wordlist:
-            self.scores[word] *= lengthEqu(len(word))
-        
+    def normaliseWeights(self, arbitrary=100):
+        scaler = max(self.letterWeight.values())
+        for letter in self.letterWeight.keys():
+            self.letterWeight[letter] /= scaler
+            self.letterWeight[letter] *= arbitrary
 
     # probably ideal to wrap in loading text
     def applyLetterWeight(self):
         for word in self.wordlist:
             # split word into set (remove duplicates), and sum weights
-            score = sum([self.letterWeight.get(letter) for letter in set(list(word))])
+            score = sum([self.letterWeight.get(letter, 0) for letter in set(list(word))])
             self.scores[word] = score
+
+    def applyLengthBias(self):
+        def lengthEqu(wordLength):
+            # shortest word - 2 unique letters(?)
+            # most unique - 16 unique letters, always guessable w/ 10 lives
+            return math.sqrt((wordLength - 17)/(-15))
+        
+        for word in self.wordlist:
+            self.scores[word] *= lengthEqu(len(set(list(word))))
+
+    def applyConsonantMult(self, vowels="aeiou"):
+        def inverseWeightEquation(score):
+            return (1/1.425)*(1-math.exp(-(score-self.SHORTCUT_DATA[0])**2/(8*(self.SHORTCUT_DATA[1]**2)))) + 0.5
+        for word in self.wordlist:
+            consonantRatio = len(re.sub(f'[{vowels}]+', '', word, flags=re.DOTALL)) / len(word)
+            self.scores[word] *= inverseWeightEquation(consonantRatio)
+
+    def cleanScores(self):
+        for word in self.wordlist:
+            self.scores[word] = round(self.scores[word], 3)
+
+    def __str__(self):
+        for word, score in self.scores.items():
+            print(f"Word: {word}\tScore: {score}")
 
 
 if __name__ == "__main__":
     #calls the function
-    ws = WordScore()
-    print(ws)
+    with open("words_alpha.txt", 'r') as f:
+        wordlist = f.read().splitlines()
+    # ws = WordScore()
+    ws = WordScoring(wordlist)
+    # print(ws)
+    # print(heapq.nlargest(10, ws.scores.items(), key=lambda x: x[1]))
+    print(heapq.nlargest(10, ws.scores, key=ws.scores.get))

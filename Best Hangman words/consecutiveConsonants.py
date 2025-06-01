@@ -3,7 +3,7 @@ import math
 import statistics
 
 class WordSpecies:
-    def __init__(self, wordData, vowelType):
+    def __init__(self, wordData, vowelType="aioue"):
         self.wordScore = [word[1] for word in wordData]
         self.wordList = [word[0] for word in wordData]
         self.adjustedWordScore = []
