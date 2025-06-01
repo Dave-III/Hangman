@@ -151,62 +151,84 @@ class WordScore:
         return f"The closest word to the average is '{closest_word[0]}' with a score of {closest_word[1]}"
 
 class WordScoring: # higher score -> harder
+    """Applies multiple functions to a list of words to determine word scores."""
     def __init__(self, wordlist): # assumed wordlist has already been length-filtered
-        self.SHORTCUT_DATA = (0.573, 0.092) #mean and std of all words, save calculation time
+        """The constructor. Applies the functions to determine scores, therefore doing calculations on construction.
+        
+        :param wordlist: The string of words to apply scoring functions to."""
+        self.SHORTCUT_DATA = (0.573, 0.092) # mean and std of entire wordset, save calculation time
 
         self.wordlist = wordlist
         self.scores = {}
+
+        # breaks down each word into letters to sum letter counts in all words, and inverts them.
         self.letterCount = defaultdict(int)
         for word in wordlist:
             for letter in list(word):
                 self.letterCount[letter] += 1
         self.letterWeight = {ch: 1 / freq for ch, freq in self.letterCount.items() if freq > 0} 
+
         self.normaliseWeights()
 
+        # applies scoring functions, and cleans to 3dp.
         self.applyLetterWeight()
         self.applyLengthBias()
         self.applyConsonantMult()
-        # self.cleanScores() # only rounds to 3 currently
+        self.cleanScores() # only rounds to 3 currently
 
-    def __iter__(self):
-        pass
-
-    def normaliseWeights(self, arbitrary=100):
-        scaler = max(self.letterWeight.values())
+    def normaliseWeights(self, upscaler: int = 2) -> None:
+        """Upscales and normalises letter weights to be relative to highest-weighted letter, which will always be `1 * upscaler`.
+        
+        :param upscaler: The flat 10s-exponent upscale factor for all weights. A higher value results in higher resolution for word scores. Defaults to 2 (x100).
+        """
+        # finds highest weight value (a float), and divides all weights by this (upscaling relative to the least common letter)
+        normaliseVal = max(self.letterWeight.values())
         for letter in self.letterWeight.keys():
-            self.letterWeight[letter] /= scaler
-            self.letterWeight[letter] *= arbitrary
+            self.letterWeight[letter] /= normaliseVal
+            
+            # arbitrary upscaler being applied
+            self.letterWeight[letter] *= (10 ** upscaler)
 
     # probably ideal to wrap in loading text
-    def applyLetterWeight(self):
+    def applyLetterWeight(self) -> None:
+        """Applies the letter weights per unique letter (i.e. a letter guess) as a base score for the respective word. Applied in-place."""
         for word in self.wordlist:
             # split word into set (remove duplicates), and sum weights
             score = sum([self.letterWeight.get(letter, 0) for letter in set(list(word))])
             self.scores[word] = score
 
-    def applyLengthBias(self):
+    def applyLengthBias(self) -> None:
+        """Applies the theory that longer words are easier to guess due to a higher number of unique letters.
+        For a game with 10 lives, words with 17+ unique letters will always be able to be guessed.
+        Applies a negative horizontal parabola with a y-domain of `0 <= x <= 1` to factor down words with a higher number of unique letters."""
         def lengthEqu(wordLength):
-            # shortest word - 2 unique letters(?)
-            # most unique - 16 unique letters, always guessable w/ 10 lives
             return math.sqrt((wordLength - 17)/(-15))
         
         for word in self.wordlist:
             self.scores[word] *= lengthEqu(len(set(list(word))))
 
-    def applyConsonantMult(self, vowels="aeiou"):
+    def applyConsonantMult(self, vowels="aeiou") -> None:
+        """Applies a negative pseudo bell-curve multiplier to the word score based on the ratio of consonants and vowels.
+        The average ratio (~0.6) corresponds to a 0.5 multiplier. The edge ratios (i.e. ~0.0) correspond to a 1.2 multiplier.
+        
+        :param vowels: A string corresponding to the defined vowels. Included as a parameter to allow the inclusion of `y`."""
         def inverseWeightEquation(score):
             return (1/1.425)*(1-math.exp(-(score-self.SHORTCUT_DATA[0])**2/(8*(self.SHORTCUT_DATA[1]**2)))) + 0.5
         for word in self.wordlist:
-            consonantRatio = len(re.sub(f'[{vowels}]+', '', word, flags=re.DOTALL)) / len(word)
+            consonantRatio = len(re.sub(f'[{vowels.lower()}]+', '', word, flags=re.DOTALL)) / len(word)
             self.scores[word] *= inverseWeightEquation(consonantRatio)
 
-    def cleanScores(self):
+    def cleanScores(self) -> None:
+        """Rounds all scores to 3dp."""
         for word in self.wordlist:
             self.scores[word] = round(self.scores[word], 3)
 
     def __str__(self):
         for word, score in self.scores.items():
             print(f"Word: {word}\tScore: {score}")
+
+    def __iter__(self):
+        return iter(self.scores.items())
 
 
 if __name__ == "__main__":
@@ -216,5 +238,8 @@ if __name__ == "__main__":
     # ws = WordScore()
     ws = WordScoring(wordlist)
     # print(ws)
-    # print(heapq.nlargest(10, ws.scores.items(), key=lambda x: x[1]))
-    print(heapq.nlargest(10, ws.scores, key=ws.scores.get))
+    for x, y in heapq.nlargest(100, ws.scores.items(), key=lambda x: x[1]):
+        print(f"Word: {x}\tScore: {y}")
+    for x, y in heapq.nsmallest(100, ws.scores.items(), key=lambda x: x[1]):
+        print(f"Word: {x}\tScore: {y}")
+    # print(heapq.nlargest(10, ws.scores, key=ws.scores.get))
