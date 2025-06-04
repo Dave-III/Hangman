@@ -7,8 +7,8 @@ def file_sorter(filename):
     with open(filename, "r+") as file:
         blacklist_words = []
         file_data = file.read().splitlines()
-        validator = WordValidator(num_workers=12)  # Create once
-        file_data = file_data[300:]
+        validator = WordValidator(num_workers=10)  # Create once
+        file_data = file_data[:300]
         results = validator.validate_words(file_data)  # Pass full list at once
 
         blacklist_words = [word for word, valid in results.items() if not valid]
