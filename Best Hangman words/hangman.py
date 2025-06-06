@@ -180,6 +180,60 @@ class HangmanSession:
                     else:
                         self.guessCount += 1
 
+#Helper function to help train my Hangman Neural Network for guessing
+
+    def guess_letter_at_position(self, letter: str, position: int):
+        """
+        Process a guessed letter at a specific position.
+
+        Args:
+            letter (str): The letter guessed by the neural network.
+            position (int): The position guessed by the neural network (0-based index).
+
+        Returns:
+            dict: {
+                'positions_found': list of int, positions where letter occurs in the word,
+                'was_position_correct': bool, whether guessed position is correct,
+                'updated_word_state': str, the current revealed word pattern,
+                'bad_guess': bool, whether the guess was incorrect (letter not in word),
+                'message': str, optional info message,
+            }
+        """
+        letter = letter.lower()
+        if position < 0 or position >= len(self.wordToGuess):
+            return {
+                'positions_found': [],
+                'was_position_correct': False,
+                'updated_word_state': self.wordState,
+                'bad_guess': True,
+                'message': f"Position {position} out of range for word length {len(self.wordToGuess)}"
+            }
+
+        positions_found = [i for i, char in enumerate(self.wordToGuess) if char == letter]
+        was_position_correct = (position in positions_found)
+
+        bad_guess = (len(positions_found) == 0)
+        if bad_guess:
+            self.badLetters += 1
+
+        # Update wordState by revealing all occurrences of the letter
+        new_word_state = list(self.wordState)
+        for pos in positions_found:
+            new_word_state[pos] = letter
+        self.wordState = ''.join(new_word_state)
+
+        # Keep track of guessed letters if not already added
+        if letter not in self.guessedLetters:
+            self.guessedLetters.append(letter)
+
+        return {
+            'positions_found': positions_found,
+            'was_position_correct': was_position_correct,
+            'updated_word_state': self.wordState,
+            'bad_guess': bad_guess,
+            'message': "Guess processed"
+        }
+
 if __name__ == "__main__":
     print("Please run main.py...")
     for x in HANGMAN_STATE:
