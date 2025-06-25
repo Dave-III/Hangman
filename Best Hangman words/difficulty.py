@@ -1,9 +1,9 @@
 from consecutiveConsonants import WordSpecies
 from collections import defaultdict
+import random
 import math
 import re
 import heapq
-from random import choice
 
 class LetterValue:
 
@@ -231,11 +231,38 @@ class WordScoring: # higher score -> harder
         quantiles = [count//3, (2*count)//3]
         match difficulty:
             case 1:
-                return choice(list(self.scores.keys())[:quantiles[0]])
+                return random.choice(list(self.scores.keys())[:quantiles[0]])
             case 2:
-                return choice(list(self.scores.keys())[quantiles[0]:quantiles[1]])
+                return random.choice(list(self.scores.keys())[quantiles[0]:quantiles[1]])
             case 3:
-                return choice(list(self.scores.keys())[quantiles[1]:])
+                return random.choice(list(self.scores.keys())[quantiles[1]:])
+
+    # TODO enforce ~0.6 consonant ratio
+    def guessWord(self, word: str, sampleNum: int = 10000) -> float:
+        """Given weighted random letter sampling, determine the average
+        number of guesses until a word is found.
+        
+        :param word: The target word to randomly guess toward.
+        :param sampleNum: The number of sampling attempts (trials). Defaults to 10000.
+        
+        :returns avgGuess: The average guess count between all trials."""
+        splitword = set(list(word))
+        guesses = []
+        letters = [i[0] for i in list(self.letterCount.items())]
+        letterweights = [i[1] for i in list(self.letterCount.items())]
+        for _ in range(sampleNum):
+            guessState = set()
+            guessNum = 0
+            letterTemp = letters[:]
+            weightTemp = letterweights[:]
+            while not splitword.issubset(guessState):
+                letter = random.choices(letterTemp, weightTemp)[0]
+                weightTemp.pop(letterTemp.index(letter))
+                letterTemp.remove(letter)
+                guessState.add(letter)
+                guessNum += 1
+            guesses.append(guessNum)
+        return sum(guesses)/sampleNum
 
     def __str__(self):
         for word, score in self.scores.items():
