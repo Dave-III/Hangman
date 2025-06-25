@@ -284,5 +284,5 @@ if __name__ == "__main__":
     for x, y in heapq.nsmallest(100, ws.scores.items(), key=lambda x: x[1]):
         print(f"Word: {x}\tScore: {y}")
     
-    ws._testDist()
+
     # print(heapq.nlargest(10, ws.scores, key=ws.scores.get))
